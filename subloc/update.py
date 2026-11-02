@@ -24,7 +24,7 @@ from .config import data_dir
 from .download import download
 from .errors import SublocError
 
-REPO = "FEzio78/Subloc"
+REPO = "Faadred/Subloc"
 LATEST = f"https://api.github.com/repos/{REPO}/releases/latest"
 # Tests point this at a local feed (an older build updating to a newer one, end to end); users never set it.
 FEED_ENV = "SUBLOC_UPDATE_FEED"

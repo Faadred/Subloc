@@ -825,7 +825,7 @@ class QueueDelegate(QStyledItemDelegate):
 # ---------------------------------------------------------------- Settings
 
 
-GITHUB = "https://github.com/FEzio78/Subloc"
+GITHUB = "https://github.com/Faadred/Subloc"
 
 
 class SettingsPage(QWidget):

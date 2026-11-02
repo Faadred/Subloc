@@ -91,7 +91,7 @@ Video ─ffmpeg─► │ 16 kHz mono → VAD (skip music/silence)     │
 - Input to LLM: JSON list of `{id, speaker?, max_chars, text}` in batches of ~20–30 lines.
 - **Sentence groups:** Japanese, Korean and Turkish put the verb at the end, so one sentence is often split across 2–3 subtitles. Lines that belong to one sentence are sent together and the LLM returns one text per ID, free to move words between them so each line reads naturally. Never translate half-sentences in isolation.
 - **Reading budget:** `max_chars` per line from its duration (~17 chars/s) so Arabic lines fit on screen in time.
-- Reused from [ProseArc](https://github.com/FEzio78/ProseArc) (`src/prompt.js`, `src/engine.js`):
+- Reused from [ProseArc](https://github.com/Faadred/ProseArc) (`src/prompt.js`, `src/engine.js`):
   - Context = previous lines as *source ⇢ translation pairs* + 2 upcoming source lines, marked "context only".
   - Arabic agreement reminder next to the task: number/gender of "you" from context (+ speaker names from OCR).
   - Glossary: only terms present in the batch; series glossary overrides global.

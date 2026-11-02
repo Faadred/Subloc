@@ -36,7 +36,7 @@
 
 ### الحالة
 
-الإصدار 0.2.1 لنظام ويندوز: نزّل المثبّت من صفحة [الإصدارات](https://github.com/FEzio78/Subloc/releases) وشغّله،
+الإصدار 0.2.1 لنظام ويندوز: نزّل المثبّت من صفحة [الإصدارات](https://github.com/Faadred/Subloc/releases) وشغّله،
 وبعدها تصلك التحديثات من داخل البرنامج.
 طريقة التشغيل من الشيفرة والتفاصيل التقنية في القسم الإنجليزي أدناه.
 
@@ -57,7 +57,7 @@ they were made in — and designed so anyone can use it: subtitles can be made i
 (Arabic, English, Spanish, French, German, Japanese, Korean, Chinese, Hindi, Thai and more).
 
 > **Status:** version 0.2.1 for Windows: get the installer from
-> [Releases](https://github.com/FEzio78/Subloc/releases); after that, updates come from inside the app.
+> [Releases](https://github.com/Faadred/Subloc/releases); after that, updates come from inside the app.
 
 ## What it does
 
@@ -123,7 +123,7 @@ but a 1-hour episode can take 1–3 hours on a laptop.
 
 ## Install (Windows 10/11, 64-bit)
 
-Download `Subloc-<version>-setup.exe` from [Releases](https://github.com/FEzio78/Subloc/releases) and run it.
+Download `Subloc-<version>-setup.exe` from [Releases](https://github.com/Faadred/Subloc/releases) and run it.
 No admin rights are needed; the installer is in English and Arabic. On first launch Setup checks your PC,
 recommends models and downloads them (and NVIDIA's CUDA libraries if you have an NVIDIA card) into
 `%LOCALAPPDATA%\Subloc`. A newer installer updates an installed Subloc in place and keeps its settings and
@@ -136,7 +136,7 @@ asks whether to keep those downloads.
 Needs [uv](https://docs.astral.sh/uv/) and [7-Zip](https://www.7-zip.org) (to unpack the player library).
 
 ```powershell
-git clone https://github.com/FEzio78/Subloc
+git clone https://github.com/Faadred/Subloc
 cd Subloc
 . .\env.ps1 -Setup                         # Python 3.12 + packages, all inside this folder
 .venv\Scripts\python tools\fetch_vendor.py # llama.cpp, libmpv, ffmpeg (pinned, checksum-verified)

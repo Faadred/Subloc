@@ -15,7 +15,7 @@ def release_json(tag="v0.3.0", name="Subloc-0.3.0-setup.exe", digest=f"sha256:{S
     asset = {"name": name, "size": 159_000_000, "browser_download_url": f"https://example.invalid/{name}"}
     if digest is not None:
         asset["digest"] = digest
-    return {"tag_name": tag, "html_url": f"https://github.com/FEzio78/Subloc/releases/tag/{tag}",
+    return {"tag_name": tag, "html_url": f"https://github.com/Faadred/Subloc/releases/tag/{tag}",
             "assets": [{"name": "notes.txt", "size": 1}, asset]}  # fmt: skip
 
 

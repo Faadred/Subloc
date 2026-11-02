@@ -2,7 +2,10 @@
 
 Local, private subtitle app: Whisper transcribes, a local LLM translates (Arabic first, any language), with
 styles, in-app player, burn-in, English/Arabic UI and a first-run setup. Windows, Python 3.12, PySide6.
-Public repo: https://github.com/FEzio78/Subloc (GPL-3.0-or-later). Design + history of decisions: `PLAN.md`.
+Public repo: https://github.com/Faadred/Subloc (GPL-3.0-or-later). Design + history of decisions: `PLAN.md`.
+GitHub user renamed FEzio78 → Faadred on 2026-11-02 (remote, noreply e-mail `31814579+Faadred@…` and all links
+updated). Old URLs redirect; the 0.2.1 updater still asks `FEzio78/Subloc` and works only through that redirect, so
+the old name must never host a `Subloc` repo (the user should hold it with an empty placeholder account).
 
 ## Commands
 
@@ -67,7 +70,7 @@ All four checks must pass before committing.
 
 ## Status (2026-10-25)
 
-**v0.2.1 released** (https://github.com/FEzio78/Subloc/releases/tag/v0.2.1, tag on `1bb166b`, `main` = `dev`):
+**v0.2.1 released** (https://github.com/Faadred/Subloc/releases/tag/v0.2.1, tag on `1bb166b`, `main` = `dev`):
 installer `Subloc-0.2.1-setup.exe`, 159 MB, SHA-256 `3a3ce507…740915d5` (GitHub's digest matched). One change:
 the in-app updater (Next 0). Tested: update over the released 0.2.0 (in place, one uninstall entry, window opens),
 and the updater end to end. From 0.2.1 on, users update from inside the app; 0.2.0 users install 0.2.1 by hand.
@@ -75,7 +78,7 @@ Notes: `dist/release-notes-v0.2.1.md` (git-ignored). The live check reads v0.2.1
 
 ## Status (2026-10-24)
 
-**v0.2.0 released** (https://github.com/FEzio78/Subloc/releases/tag/v0.2.0, tag on `769dc79`, `main` = `dev`):
+**v0.2.0 released** (https://github.com/Faadred/Subloc/releases/tag/v0.2.0, tag on `769dc79`, `main` = `dev`):
 installer `Subloc-0.2.0-setup.exe`, 159 MB, SHA-256 `1bc609f2…a04668e4` (GitHub's digest matched). Tested: fresh
 install (a clip end to end to Arabic, window opens) and update over 0.1.0 (in place, old `_internal` cleared, one
 uninstall entry). What's new: speakers and voices, who is spoken to, visible feminine ي, "Spoken to" fix, names
@@ -84,7 +87,7 @@ Lesson: run the tests with an empty `SUBLOC_DATA` too — CI has no models (a te
 
 ## Status (2026-10-22)
 
-**v0.1.0 released** (https://github.com/FEzio78/Subloc/releases/tag/v0.1.0, tag on `5aebb79`): installer
+**v0.1.0 released** (https://github.com/Faadred/Subloc/releases/tag/v0.1.0, tag on `5aebb79`): installer
 `Subloc-0.1.0-setup.exe`, 154 MB, notes in Arabic and English.
 
 Done: engine quality pass on 11 real videos / 9 languages (0 missing lines), built-in translator, Setup wizard,
