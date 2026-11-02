@@ -34,11 +34,11 @@
 
 كل شيء يعمل على جهازك، ومنه التعرّف على المتحدثين وأصواتهم. لا تُرسل مقاطعك ولا أصواتها ولا ترجماتها إلى أي مكان.
 الاتصال بالإنترنت هو تنزيل النماذج أثناء الإعداد فقط، والبحث عن تحديثات وتنزيلها من GitHub عندما تطلب ذلك (أو مرة
-يوميًا إن فعّلت ذلك).
+يوميًا إن فعّلت ذلك)، والبحث عن نماذج في Hugging Face أو عن محرّك ترجمة أحدث في GitHub حين تضغط الزر.
 
 ### الحالة
 
-الإصدار 0.2.1 لنظام ويندوز: نزّل المثبّت من صفحة [الإصدارات](https://github.com/Faadred/Subloc/releases) وشغّله،
+الإصدار 0.2.2 لنظام ويندوز: نزّل المثبّت من صفحة [الإصدارات](https://github.com/Faadred/Subloc/releases) وشغّله،
 وبعدها تصلك التحديثات من داخل البرنامج.
 طريقة التشغيل من الشيفرة والتفاصيل التقنية في القسم الإنجليزي أدناه.
 
@@ -58,7 +58,7 @@ Built first for **Arabic** viewers to watch their favorite shows, movies and ani
 they were made in — and designed so anyone can use it: subtitles can be made in any of 17 languages
 (Arabic, English, Spanish, French, German, Japanese, Korean, Chinese, Hindi, Thai and more).
 
-> **Status:** version 0.2.1 for Windows: get the installer from
+> **Status:** version 0.2.2 for Windows: get the installer from
 > [Releases](https://github.com/Faadred/Subloc/releases); after that, updates come from inside the app.
 
 ## What it does
@@ -183,7 +183,8 @@ Saved next to the video, so VLC, MPV, Plex and most TVs pick the subtitles up au
 Everything runs on your computer, speaker and voice detection included. Videos, audio and subtitles are
 never sent anywhere. The only network traffic is downloading models during Setup (from Hugging Face and
 GitHub), checking for updates when you ask (or once a day, if you turn that on) and downloading them from
-GitHub, or talking to the translator server *you* configure.
+GitHub, searching Hugging Face for models or GitHub for a newer translator engine when you press the button,
+or talking to the translator server *you* configure.
 
 ## Contributing
 
