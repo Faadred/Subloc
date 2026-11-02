@@ -140,3 +140,8 @@ PATH from its first runtime hook (`installer/rth_system_path.py`): other program
 3. Later: one running copy at a time (a second launch hands its files to the first), reading burned-in subtitles
    (research notes in PLAN.md §2.2), live captions for system audio, CapCut-style animated captions, more UI
    languages.
+4. Side projects the user wants to try (2026-11-02; experiments, not part of the app): (a) a short promo video
+   of what Subloc does, made only from synthetic demo material (`tools/make_screenshots.py`), never `vids/`;
+   (b) a website idea: people drop a video, the server extracts only the audio, translates it and returns the
+   subtitle file. (b) uploads people's media, the opposite of the app's "nothing leaves your PC" promise, so it
+   would need its own name/privacy terms and must not reuse the app's privacy claims.

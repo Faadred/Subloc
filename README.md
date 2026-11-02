@@ -24,17 +24,20 @@
   شخصية مرة واحدة فيتغيّر في كل مكان.
 - **بالشكل الذي تريده:** أنماط للترجمة مع معاينة دقيقة، ومشغّل داخل البرنامج، وتصدير فيديو بترجمة مدمجة للهاتف والتلفاز.
 - **بواجهة عربية كاملة** من اليمين إلى اليسار، أو بالإنجليزية.
+- **يحدّث نفسه:** من الإعدادات ← البحث عن تحديثات، يُنزَّل الإصدار الجديد ويُتحقَّق منه ويُثبَّت، ثم يفتح البرنامج من جديد.
 - **من سطر الأوامر أو عبر وكيل ذكاء اصطناعي:** كل ما يفعله البرنامج متاح بالأوامر، وكخادم MCP يستطيع وكيل مثل Claude
   أن يجد المقاطع التي تنقصها ترجمة ويترجمها ويصحّحها لك، وكل ذلك على جهازك.
 
 ### الخصوصية
 
 كل شيء يعمل على جهازك، ومنه التعرّف على المتحدثين وأصواتهم. لا تُرسل مقاطعك ولا أصواتها ولا ترجماتها إلى أي مكان.
-الاتصال بالإنترنت هو تنزيل النماذج أثناء الإعداد فقط، والبحث عن تحديثات عندما تطلب ذلك.
+الاتصال بالإنترنت هو تنزيل النماذج أثناء الإعداد فقط، والبحث عن تحديثات وتنزيلها من GitHub عندما تطلب ذلك (أو مرة
+يوميًا إن فعّلت ذلك).
 
 ### الحالة
 
-الإصدار 0.2.0 لنظام ويندوز: نزّل المثبّت من صفحة [الإصدارات](https://github.com/FEzio78/Subloc/releases) وشغّله.
+الإصدار 0.2.1 لنظام ويندوز: نزّل المثبّت من صفحة [الإصدارات](https://github.com/FEzio78/Subloc/releases) وشغّله،
+وبعدها تصلك التحديثات من داخل البرنامج.
 طريقة التشغيل من الشيفرة والتفاصيل التقنية في القسم الإنجليزي أدناه.
 
 **الرخصة:** مفتوح المصدر بموجب GPL-3.0.
@@ -53,8 +56,8 @@ Built first for **Arabic** viewers to watch their favorite shows, movies and ani
 they were made in — and designed so anyone can use it: subtitles can be made in any of 17 languages
 (Arabic, English, Spanish, French, German, Japanese, Korean, Chinese, Hindi, Thai and more).
 
-> **Status:** version 0.2.0 for Windows: get the installer from
-> [Releases](https://github.com/FEzio78/Subloc/releases).
+> **Status:** version 0.2.1 for Windows: get the installer from
+> [Releases](https://github.com/FEzio78/Subloc/releases); after that, updates come from inside the app.
 
 ## What it does
 
@@ -75,6 +78,8 @@ they were made in — and designed so anyone can use it: subtitles can be made i
 - **Looks the way you want** — subtitle styles with an exact preview; play inside the app, or burn the
   subtitles into a new video for phones and TVs.
 - **Speaks your language** — English and Arabic interface (full right-to-left layout).
+- **Keeps itself up to date** — Settings → Check for updates downloads the new version, checks it, installs
+  it and opens Subloc again.
 
 | Working | Reviewing |
 |---|---|
