@@ -28,6 +28,8 @@ All four checks must pass before committing.
   nothing from `vids/` (no media, subtitles, dialogue or character names) in files or commit messages.
 - `dev-backup` (local only, never push): `dev` before its history was rewritten to drop character names.
 - `private-history` is never pushed.
+- `promo` (local only; push only if the user asks): the promo-video experiment, `tools/make_promo.py` →
+  `dist/promo/*.mp4`. Kept off `dev` until the user decides on it.
 
 ## Layout
 
