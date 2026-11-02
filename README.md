@@ -25,6 +25,8 @@
 - **بالشكل الذي تريده:** أنماط للترجمة مع معاينة دقيقة، ومشغّل داخل البرنامج، وتصدير فيديو بترجمة مدمجة للهاتف والتلفاز.
 - **بواجهة عربية كاملة** من اليمين إلى اليسار، أو بالإنجليزية.
 - **يحدّث نفسه:** من الإعدادات ← البحث عن تحديثات، يُنزَّل الإصدار الجديد ويُتحقَّق منه ويُثبَّت، ثم يفتح البرنامج من جديد.
+- **نماذج أحدث دائمًا:** ابحث في Hugging Face من داخل البرنامج عن أي نموذج ترجمة (GGUF)، فيختار الملف المناسب لجهازك
+  وينزّله بعد التحقق منه. ويمكن تحديث محرّك الترجمة (llama.cpp) لتشغيل أنواع أحدث من النماذج.
 - **من سطر الأوامر أو عبر وكيل ذكاء اصطناعي:** كل ما يفعله البرنامج متاح بالأوامر، وكخادم MCP يستطيع وكيل مثل Claude
   أن يجد المقاطع التي تنقصها ترجمة ويترجمها ويصحّحها لك، وكل ذلك على جهازك.
 
@@ -80,6 +82,9 @@ they were made in — and designed so anyone can use it: subtitles can be made i
 - **Speaks your language** — English and Arabic interface (full right-to-left layout).
 - **Keeps itself up to date** — Settings → Check for updates downloads the new version, checks it, installs
   it and opens Subloc again.
+- **Never stuck on old models** — search Hugging Face from Settings for any GGUF translator model; Subloc
+  picks the file that suits your PC and downloads it checked. The engine behind the built-in translator
+  (llama.cpp) can be updated too, so newer kinds of models keep loading.
 
 | Working | Reviewing |
 |---|---|
@@ -106,8 +111,8 @@ video ─► ffmpeg ─► Whisper (speech → timed lines, quiet parts heard tw
 ```
 
 The translator is either **built in** (Subloc runs [llama.cpp](https://github.com/ggml-org/llama.cpp)
-with a model chosen for your PC) or **your own server** — LM Studio, Ollama or any OpenAI-compatible
-address.
+with a model chosen for your PC, or any GGUF model you find with Settings → Find more models) or **your own
+server** — LM Studio, Ollama or any OpenAI-compatible address.
 
 ### Recommended setups
 

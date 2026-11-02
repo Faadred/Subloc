@@ -18,6 +18,7 @@ from PySide6.QtGui import QDesktopServices, QKeySequence, QPixmap, QShortcut
 from PySide6.QtWidgets import (
     QAbstractItemView,
     QApplication,
+    QDialog,
     QFileDialog,
     QInputDialog,
     QMainWindow,
@@ -29,13 +30,14 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from .. import batch, busy, library, power, proc, recent, update, voices
+from .. import batch, busy, library, llama, power, proc, recent, update, voices
 from ..batch import Item, find_videos, load_queue, save_queue
 from ..burn import burn
 from ..busy import BusyLock
 from ..catalog import TRANSLATORS
 from ..config import Config
 from ..engine import BuiltinEngine
+from ..errors import SublocError
 from ..glossary import Glossary
 from ..glossary import folder_path as glossary_path
 from ..langs import LANGS
@@ -63,6 +65,7 @@ from .intro import play as play_intro
 from .library_ctl import LibraryMixin
 from .library_page import LibraryPage
 from .lines import Row
+from .models_dialog import ModelSearchDialog
 from .pages import HomePage, JobPage, QueuePage, SettingsPage, select_data
 from .player import available as player_available
 from .queue_ctl import QueueMixin
@@ -105,6 +108,9 @@ class Bus(QObject):
     update = Signal(object, str, bool)  # update.Release or None, error ("" = fine), asked by the user
     update_progress = Signal(float)
     update_ready = Signal(str, str)  # downloaded installer, error ("" = fine; "stopped")
+    engine_latest = Signal(object, str)  # llama.Build or None, error
+    engine_progress = Signal(str)
+    engine_done = Signal(str, str)  # build tag, error
     voices = Signal(float, str)  # speaker models download: fraction, error ("" = fine; fraction 1 = done)
 
 
@@ -206,6 +212,9 @@ class MainWindow(HomeMixin, LibraryMixin, QueueMixin, QMainWindow):
         b.update.connect(self._on_update)
         b.update_progress.connect(lambda f: self.settingsp.show_update(tr("Downloading {n}…", n=f"{f:.0%}"), True))
         b.update_ready.connect(self._on_update_ready)
+        b.engine_latest.connect(self._on_engine_latest)
+        b.engine_progress.connect(lambda text: self.settingsp.show_engine(self._engine_versions(), text, True))
+        b.engine_done.connect(self._on_engine_done)
         lp = self.libp
         lp.add_folder.connect(self.add_library_folder)
         lp.refresh.connect(self.refresh_library)
@@ -261,6 +270,8 @@ class MainWindow(HomeMixin, LibraryMixin, QueueMixin, QMainWindow):
         s.language.connect(self.change_language)
         s.shortcuts.connect(self.show_shortcuts)
         s.check_updates.connect(self.check_updates)
+        s.find_models.connect(self.find_models)
+        s.check_engine.connect(self.check_engine_update)
         s.get_voices.connect(self.get_voices)
         self.bus.voices.connect(self._on_voices)
         s.open_link.connect(lambda url: QDesktopServices.openUrl(QUrl(url)))
@@ -375,6 +386,7 @@ class MainWindow(HomeMixin, LibraryMixin, QueueMixin, QMainWindow):
             self.settingsp.translator_info.setText(tr("Built-in · {m}", m=self._builtin_label()))
         else:
             self.settingsp.translator_info.setText(tr("Your server · {url}", url=self.cfg.server_url))
+        self.settingsp.show_engine(self._engine_versions())
 
     def check_engine(self) -> None:
         if self.engine is not None:  # built-in: nothing to poll — ready if the model file is there
@@ -1029,6 +1041,119 @@ class MainWindow(HomeMixin, LibraryMixin, QueueMixin, QMainWindow):
         installer replaces this program's files and must find them free."""
         if self.close():
             QApplication.quit()
+
+    # ---------------------------------------------------------------- more models, translator engine updates
+
+    def _engine_versions(self) -> str:
+        have = llama.current()
+        if not have:
+            return tr("Not installed")
+        return "llama.cpp " + " · ".join(sorted(set(have.values()), key=llama.number))
+
+    def _working(self) -> bool:
+        if self.job is not None or self.queue_job is not None:
+            self.toast(tr("Wait for the current video to finish, or stop it first."), "warning")
+            return True
+        return False
+
+    def find_models(self) -> None:
+        """Search Hugging Face, download the chosen file (checked) and use it as the built-in translator."""
+        if self._working():
+            return
+        dlg = ModelSearchDialog(self, download=True)
+        if dlg.exec() != QDialog.DialogCode.Accepted or dlg.path is None:
+            return
+        self.cfg = Config.load()
+        self.cfg.provider = "builtin"
+        self.cfg.builtin_model = str(dlg.path)
+        self.cfg.save()
+        self._make_engine()
+        self.check_engine()
+        self.toast(tr("Translator model: {m}", m=self._builtin_label()), "ok", secs=6)
+
+    def check_engine_update(self) -> None:
+        bus = self.bus
+        self.settingsp.show_engine(self._engine_versions(), tr("Checking…"), True)
+
+        def work() -> None:
+            try:
+                bus.engine_latest.emit(llama.latest(), "")
+            except Exception as e:
+                bus.engine_latest.emit(None, str(e) or type(e).__name__)
+
+        threading.Thread(target=work, daemon=True).start()
+
+    def _on_engine_latest(self, build: "llama.Build | None", err: str) -> None:
+        self.settingsp.show_engine(self._engine_versions())
+        if err:
+            self.toast(tr("Couldn't reach GitHub. Check the internet connection."), "warning")
+            return
+        have = llama.current()
+        todo = llama.newer(build, have)
+        if build is None or not todo:
+            self.toast(tr("You have the newest translator engine ({v}).", v=self._engine_versions()), "ok")
+            return
+        if self._working():
+            return
+        old = " · ".join(sorted({have[b] for b in todo}, key=llama.number))
+        box = QMessageBox(self)
+        box.setWindowTitle(tr("Update the translator engine"))
+        box.setText(tr("llama.cpp {new} is available (you have {old}). Download about {n} MB and switch to it?",
+                       new=build.tag, old=old, n=round(sum(build.assets[b].size for b in todo) / 1e6)))  # fmt: skip
+        box.setInformativeText(tr("Subloc checks the download and makes sure the new engine starts before using it. "
+                                  "You can go back to the one you have now."))  # fmt: skip
+        go = box.addButton(tr("Update now"), QMessageBox.ButtonRole.AcceptRole)
+        notes = box.addButton(tr("What's new"), QMessageBox.ButtonRole.HelpRole)
+        box.addButton(tr("Later"), QMessageBox.ButtonRole.RejectRole)
+        box.exec()
+        if box.clickedButton() is notes:
+            QDesktopServices.openUrl(QUrl(build.page))
+        elif box.clickedButton() is go:
+            self._start_engine_update(build, todo)
+
+    def _start_engine_update(self, build: "llama.Build", todo: list[str]) -> None:
+        if self._working():
+            return
+        if self.engine is not None:
+            self.engine.stop()  # its files are about to be replaced
+        bus, total = self.bus, len(todo)
+        self.settingsp.show_engine(self._engine_versions(), tr("Downloading…"), True)
+
+        def work() -> None:
+            try:
+                for i, backend in enumerate(todo):
+
+                    def progress(done: int, size: int, i: int = i) -> None:
+                        bus.engine_progress.emit(tr("Downloading {n}…", n=f"{(i + done / max(size, 1)) / total:.0%}"))
+
+                    llama.update(backend, build, progress)
+                bus.engine_done.emit(build.tag, "")
+            except Exception as e:
+                bus.engine_done.emit("", str(e) or type(e).__name__)
+
+        threading.Thread(target=work, daemon=True).start()
+
+    def _on_engine_done(self, tag: str, err: str) -> None:
+        self.settingsp.show_engine(self._engine_versions())
+        if err:
+            QMessageBox.warning(self, tr("Couldn't update the translator engine"), tr(err))
+            return
+        self.toast(tr("Translator engine updated to llama.cpp {v}.", v=tag), "ok",
+                   (tr("Undo"), self.undo_engine_update), secs=10)  # fmt: skip
+
+    def undo_engine_update(self) -> None:
+        if self._working():
+            return
+        if self.engine is not None:
+            self.engine.stop()
+        try:
+            for backend in list(llama.current()):
+                if llama.previous(backend):
+                    llama.undo(backend)
+        except SublocError as e:
+            QMessageBox.warning(self, tr("Couldn't update the translator engine"), tr(str(e)))
+        self.settingsp.show_engine(self._engine_versions())
+        self.toast(tr("Back to {v}.", v=self._engine_versions()), "ok")
 
     def toggle_play(self) -> None:
         j = self.jobp

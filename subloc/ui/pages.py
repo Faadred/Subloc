@@ -835,6 +835,8 @@ class SettingsPage(QWidget):
     run_setup = Signal()
     shortcuts = Signal()
     check_updates = Signal()
+    find_models = Signal()
+    check_engine = Signal()
     open_link = Signal(str)
     get_voices = Signal()
 
@@ -876,13 +878,29 @@ class SettingsPage(QWidget):
         setup = QPushButton("Run setup again…")
         setup.setIcon(icons.icon("settings", t.TEXT))
         setup.clicked.connect(self.run_setup.emit)
+        more = QPushButton("Find more models…")
+        more.setIcon(icons.icon("search", t.TEXT))
+        more.clicked.connect(self.find_models.emit)
         self.translator_info = label("", "muted")
         tb = QHBoxLayout()
         tb.addWidget(self.translator_info, 1)
+        tb.addWidget(more)
         tb.addWidget(setup)
         tbw = QWidget()
         tbw.setLayout(tb)
-        row("Translator", "Choose the language, translator and models again.", tbw)
+        row("Translator", "Choose the language, translator and models again, or find more models on Hugging Face "
+            "for the built-in translator.", tbw)  # fmt: skip
+        self.engine_info = label("", "muted")
+        self.engine_button = QPushButton("Check for a newer version")
+        self.engine_button.setIcon(icons.icon("refresh-cw", t.TEXT))
+        self.engine_button.clicked.connect(self.check_engine.emit)
+        eb = QHBoxLayout()
+        eb.addWidget(self.engine_info, 1)
+        eb.addWidget(self.engine_button)
+        ebw = QWidget()
+        ebw.setLayout(eb)
+        row("Translator engine", "llama.cpp runs the built-in translator. Newer versions load newer kinds of models. "
+            "Asks GitHub only when you press the button.", ebw)  # fmt: skip
         self.parallel = QComboBox()
         self.parallel.setObjectName("boxed")
         for n in range(1, MAX_PARALLEL + 1):
@@ -958,6 +976,12 @@ class SettingsPage(QWidget):
         self.voices_get.setVisible(state != "ready")
         self.voices_get.setEnabled(state == "missing")
         self.voices_get.setText(detail)
+
+    def show_engine(self, versions: str, text: str = "", busy: bool = False) -> None:
+        """The engine's version, and the button's state while an engine update downloads."""
+        self.engine_info.setText(versions)
+        self.engine_button.setText(text or tr("Check for a newer version"))
+        self.engine_button.setEnabled(not busy)
 
     def show_update(self, text: str = "", busy: bool = False) -> None:
         """The Check for updates button shows the download's progress while an update downloads."""

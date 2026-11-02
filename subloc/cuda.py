@@ -50,6 +50,7 @@ DOWNLOAD_GB = sum(w.size for w in WHEELS) / 1e9
 LLAMA_CUDA_URL = "https://github.com/ggml-org/llama.cpp/releases/download/b11457/llama-b11457-bin-win-cuda-12.4-x64.zip"
 LLAMA_CUDA_SHA256 = "c901dbb473c9472288e38ef06bf85e4e13d7de6bb24732b03dbe8aa05fcc483c"
 LLAMA_CUDA_SIZE = 264528387
+LLAMA_BUILD = LLAMA_CUDA_URL.split("/download/")[1].split("/")[0]  # "b11457": the build bundled with this Subloc
 
 
 def cuda_dir() -> Path:
@@ -115,6 +116,7 @@ def install_llama(on_progress: Callable[[int, int], None] = lambda done, total: 
             name = Path(info.filename).name
             if not info.is_dir() and keep_llama_file(name):
                 (target / name).write_bytes(z.read(info))
+    (target / "version.txt").write_text(LLAMA_BUILD, encoding="utf-8")  # see subloc/llama.py
     archive.unlink(missing_ok=True)
 
 

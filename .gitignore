@@ -11,6 +11,8 @@ vids/
 .venv/
 .tools/
 models/
+/llama/
+/downloads/
 __pycache__/
 *.pyc
 .pytest_cache/

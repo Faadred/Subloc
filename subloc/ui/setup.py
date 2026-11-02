@@ -22,7 +22,7 @@ from PySide6.QtWidgets import (
 )
 
 from .. import FROZEN, cuda, hardware, voices
-from ..catalog import PRESETS, SPEECH, TRANSLATORS, Preset, recommend
+from ..catalog import PRESETS, SPEECH, TRANSLATORS, Preset, TranslatorModel, recommend
 from ..config import Config, models_dir
 from ..download import Cancelled, download
 from ..llm import LMStudio
@@ -122,6 +122,7 @@ class SetupWizard(QDialog):
         self.preset: Preset = PRESETS["balanced"]
         self.provider = self.cfg.provider if self.cfg.setup_done else "builtin"
         self.custom_model: Path | None = None
+        self.chosen: TranslatorModel | None = None  # a model found on Hugging Face (downloaded in Install)
         self.cancel = threading.Event()
         self.installing = False
         self.rows_holder: QWidget | None = None
@@ -275,7 +276,11 @@ class SetupWizard(QDialog):
         pick = QPushButton(tr("Use a model file I already have (.gguf)…"))
         pick.setObjectName("ghost")
         pick.clicked.connect(self._pick_gguf)
+        find = QPushButton(tr("Find more models on Hugging Face…"))
+        find.setObjectName("ghost")
+        find.clicked.connect(self._find_model)
         bl.addWidget(pick)
+        bl.addWidget(find)
         bl.addWidget(self.model_file_label, 1)
         lay.addWidget(self.builtin_extra)
 
@@ -425,7 +430,20 @@ class SetupWizard(QDialog):
         path, _ = QFileDialog.getOpenFileName(self, tr("Choose a model file"), "", "GGUF (*.gguf)")
         if path:
             self.custom_model = Path(path)
+            self.chosen = None
             self.model_file_label.setText(Path(path).name)
+
+    def _find_model(self) -> None:
+        from .models_dialog import ModelSearchDialog
+
+        dlg = ModelSearchDialog(self, hw=self.hw, download=False)
+        if dlg.exec() == QDialog.DialogCode.Accepted and dlg.choice is not None:
+            self.chosen = dlg.choice.as_model()
+            self.custom_model = None
+            self.model_file_label.setText(f"{self.chosen.label} · {self.chosen.size_gb:.1f} GB")
+
+    def _translator(self) -> TranslatorModel:
+        return self.chosen or TRANSLATORS[self.preset.translator]
 
     def _test(self) -> None:
         url = self.url.text().strip()
@@ -471,8 +489,8 @@ class SetupWizard(QDialog):
             items.append(("llama_cuda", tr("Built-in translator · engine for NVIDIA cards"), cuda.LLAMA_CUDA_SIZE / 1e9,
                           cuda.llama_installed()))  # fmt: skip
         if self.provider == "builtin" and self.custom_model is None:
-            trm = TRANSLATORS[self.preset.translator]
-            path = models_dir() / "llm" / trm.file
+            trm = self._translator()
+            path = models_dir() / "llm" / (trm.local or trm.file)
             items.append(("translator", tr("Translator · {m}", m=trm.label), trm.size_gb, path.exists()))
         return items
 
@@ -537,7 +555,7 @@ class SetupWizard(QDialog):
         self.next_btn.setObjectName("")
         self.next_btn.setStyleSheet("")
         items = [(k, s) for k, _, s, present in self._items() if not present]
-        preset, bus, cancel = self.preset, self.bus, self.cancel
+        preset, bus, cancel, trm = self.preset, self.bus, self.cancel, self._translator()
 
         def work() -> None:
             for key, size in items:
@@ -568,10 +586,9 @@ class SetupWizard(QDialog):
                             SPEECH[preset.speech].id, size, lambda f, d: bus.progress.emit("speech", f, d), cancel
                         )
                     else:
-                        trm = TRANSLATORS[preset.translator]
                         download(
                             trm.url,
-                            models_dir() / "llm" / trm.file,
+                            models_dir() / "llm" / (trm.local or trm.file),
                             trm.sha256,
                             lambda done, total: bus.progress.emit(
                                 "translator", done / max(total, 1), f"{done / 1e9:.1f} / {total / 1e9:.1f} GB"
@@ -621,7 +638,7 @@ class SetupWizard(QDialog):
 
     def _finish_summary(self) -> None:
         if self.provider == "builtin":
-            model = self.custom_model.name if self.custom_model else TRANSLATORS[self.preset.translator].label
+            model = self.custom_model.name if self.custom_model else self._translator().label
             translator = tr("built-in translator ({m})", m=model)
         else:
             translator = tr("your server at {url}", url=self.url.text().strip())
@@ -636,7 +653,12 @@ class SetupWizard(QDialog):
         cfg.server_url = self.url.text().strip() or cfg.server_url
         cfg.speech_model = self.preset.speech
         if self.provider == "builtin":
-            cfg.builtin_model = str(self.custom_model) if self.custom_model else self.preset.translator
+            if self.custom_model:
+                cfg.builtin_model = str(self.custom_model)
+            elif self.chosen:
+                cfg.builtin_model = str(models_dir() / "llm" / (self.chosen.local or self.chosen.file))
+            else:
+                cfg.builtin_model = self.preset.translator
         cfg.save()
 
     def reject(self) -> None:

@@ -41,12 +41,14 @@ All four checks must pass before committing.
   voice per line, fingerprints, scenes) · `addressee` (optional scene-first listener pass) · `translate` (batches, enforced JSON with exact
   count + id enum, `src` anchoring, retries, parallel) · `llm` (OpenAI-compatible client) · `engine`
   (built-in llama-server) · `pipeline` (one video, caching) · `batch` · `style`/`burn`/`subtitles` (outputs) ·
-  `catalog`/`hardware`/`download`/`config` (setup) · `recent` (Home list) · `library` (folder index, scans) ·
+  `catalog`/`hardware`/`download`/`config` (setup) · `hub` (Hugging Face model search, fit for this PC, checked
+  download) · `llama` (engine updates: llama.cpp's stable release → checked Windows builds, `--version` check,
+  swap, Undo) · `recent` (Home list) · `library` (folder index, scans) ·
   `proc` (every process starts here, hidden: no console windows; test enforces) · `power` ·
   `service` (no-window layer: app settings, jobs, JSON reports; used by `cli` and `mcp_server`) · `busy`
   (one GPU job at a time across window, CLI and agents: OS file lock) · `cli` · `mcp_server` (MCP over stdio,
   protocol hand-written, no extra packages).
-- UI (`subloc/ui`): `app` (main window: wiring, job, player, export) + its parts `home_ctl` (recent list),
+- UI (`subloc/ui`): `models_dialog` (Find more models) · `app` (main window: wiring, job, player, export) + its parts `home_ctl` (recent list),
   `library_ctl` (scans, watching), `queue_ctl` (queue, busy lock, power, notifications) · `pages` (Home, Job,
   Queue, Settings + About) · `library_page` · `widgets` (incl. Banner, Toast) · `icons` (Lucide SVGs in
   `assets/icons`, recoloured) · `shortcuts` (one list: keys + F1 window) · `intro` · `lines` · `player` (libmpv) ·
@@ -145,7 +147,16 @@ PATH from its first runtime hook (`installer/rth_system_path.py`): other program
 3. Later: one running copy at a time (a second launch hands its files to the first), reading burned-in subtitles
    (research notes in PLAN.md §2.2), live captions for system audio, CapCut-style animated captions, more UI
    languages.
-4. Side projects the user wants to try (2026-11-02; experiments, not part of the app): (a) a short promo video
+4. **More models + engine updates** (on `dev`, 2026-11-02, not released): Settings/Setup → Find more models
+   (Hugging Face search, GGUF only, gated/split repos left out; suggested file = preferred quant that fits the PC,
+   `hub.PREFERRED`; downloads checked against HF's LFS SHA-256 into `models/llm/hub/<owner--repo>/`), Settings →
+   Translator engine (llama.cpp: follows the *stable* release, which only carries `nightly-tag.txt` naming its
+   build since v0.8.0; CUDA 12 + Vulkan Windows builds checked against GitHub's digest; `llama-server --version`
+   must start; old build kept for Undo; updates in `<data>/llama/<backend>` with `version.txt`; the engine uses
+   the newest of bundled vs data folder). CLI `subloc models --search/--get`, `subloc engine --check/--update/
+   --undo`. Left for later (the user's choice): a quick translation self-test after download for a "Tested by
+   Subloc" badge; a recommended-models list hosted on GitHub.
+5. Side projects the user wants to try (2026-11-02; experiments, not part of the app): (a) a short promo video
    of what Subloc does, made only from synthetic demo material (`tools/make_screenshots.py`), never `vids/`;
    (b) a website idea: people drop a video, the server extracts only the audio, translates it and returns the
    subtitle file. (b) uploads people's media, the opposite of the app's "nothing leaves your PC" promise, so it

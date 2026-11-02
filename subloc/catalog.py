@@ -28,6 +28,7 @@ class TranslatorModel:
     sha256: str
     min_vram_gb: float  # to run fully on an NVIDIA card; below that it runs on the processor/Vulkan
     note: str
+    local: str = ""  # where it's saved under models/llm when not its file name (models from Hugging Face search)
 
     @property
     def url(self) -> str:

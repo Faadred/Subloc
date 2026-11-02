@@ -27,12 +27,13 @@ def _vendor() -> Path:
 
 
 def _backend_dir(backend: str) -> Path | None:
-    """vendor/llama/<backend> (source tree, and the installer's Vulkan build), or the data folder (the NVIDIA build,
-    which the installed app downloads in Setup)."""
-    for base in (_vendor(), data_dir() / "llama"):
-        if (base / backend / "llama-server.exe").exists():
-            return base / backend
-    return None
+    """vendor/llama/<backend> (source tree, and the installer's Vulkan build) or the data folder (the NVIDIA build
+    the installed app downloads in Setup, and engine updates: subloc/llama.py), whichever has the newer build."""
+    from .llama import number, version_of
+
+    found = [base / backend for base in (_vendor(), data_dir() / "llama")
+             if (base / backend / "llama-server.exe").exists()]  # fmt: skip
+    return max(found, key=lambda d: number(version_of(d)), default=None)
 
 
 def _nvidia_dirs() -> list[str]:
@@ -149,6 +150,9 @@ class BuiltinEngine:
         if "out of memory" in tail or "failed to allocate" in tail:
             return ("Not enough graphics memory for the translator model. Close other programs using the GPU, "
                     "or choose a lighter setup in Setup.")  # fmt: skip
+        if "unknown model architecture" in tail or "unknown architecture" in tail:
+            return ("This model is newer than the translator engine. Update the engine in Settings → Translator "
+                    "engine, or choose another model.")  # fmt: skip
         if "failed to load model" in tail or "invalid" in tail:
             return "The translator model file couldn't be loaded. It may be damaged — run Setup again."
         return "The built-in translator stopped unexpectedly."

@@ -19,6 +19,10 @@ subloc queue add "D:\Anime\Night Market"          # hand videos to the app's que
 subloc status                                     # settings, translator ready?, busy?
 subloc update --check                             # is there a newer Subloc?
 subloc update                                     # download it (checked) and install it (installed app only)
+subloc models --search qwen                       # translator models on Hugging Face (GGUF, most downloaded first)
+subloc models --get owner/Model-GGUF              # download the file that suits this PC (checked) and use it
+subloc engine --check                             # a newer llama.cpp for the built-in translator?
+subloc engine --update                            # download it (checked), make sure it starts, switch to it
 ```
 
 With the installed app the command is `subloc-cli.exe` in Subloc's folder (usually
@@ -41,6 +45,20 @@ With the installed app the command is `subloc-cli.exe` in Subloc's folder (usual
 
 Videos already done are skipped. Ctrl+C stops; progress is kept, and the same command continues.
 Subtitles are written next to each video: `Video.ar.srt` (and `Video.ar.ass` with a style).
+
+## More models, newer engine
+
+The built-in translator can use any GGUF model on Hugging Face, not only the three Setup offers.
+`subloc models --search WORDS` lists them (gated ones, which need a Hugging Face account, and models split into
+several files are left out). `subloc models --get OWNER/NAME` picks the file that suits this PC (a 4-bit `Q4_K_M`
+that fits your graphics card when there is one; `--file Q8_0` or a file name picks another), downloads it checked
+against Hugging Face's SHA-256 into `models\llm\hub`, and makes it the built-in translator. These models aren't
+tested with Subloc: quality, in Arabic especially, can vary.
+
+New kinds of models need a newer llama.cpp, the engine behind the built-in translator. `subloc engine` shows the
+version; `--check` asks GitHub for llama.cpp's newest *stable* release; `--update` downloads its Windows builds
+(NVIDIA CUDA 12 and Vulkan, checked against GitHub's SHA-256), makes sure the new `llama-server` starts and
+switches to it; `--undo` goes back to the engine it replaced. The same is in Settings → Translator engine.
 
 ## For scripts: `--json`
 

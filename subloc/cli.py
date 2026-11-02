@@ -11,6 +11,8 @@
     subloc library [list|add|remove|refresh|watch]
     subloc queue [list|add|clear]          the app's queue (start it in the app)
     subloc status | models | styles
+    subloc models --search WORDS | --get OWNER/NAME   models from Hugging Face for the built-in translator
+    subloc engine [--check|--update|--undo]  the built-in translator's engine (llama.cpp)
     subloc update [--check]                a newer Subloc? download and install it (installed app only)
     subloc mcp                             MCP server for AI agents (stdin/stdout)
 
@@ -28,7 +30,7 @@ from . import library, service
 from .busy import holder
 
 COMMANDS = {"translate", "transcribe", "info", "lines", "edit", "retranslate", "burn", "folder", "library", "queue",
-            "status", "models", "styles", "update", "mcp"}  # fmt: skip
+            "status", "models", "styles", "update", "engine", "mcp"}  # fmt: skip
 BUSY = 3
 
 
@@ -117,7 +119,16 @@ def _parser() -> argparse.ArgumentParser:
     c.add_argument("action", nargs="?", default="list", choices=["list", "add", "clear"])
     c.add_argument("paths", nargs="*", type=Path)
     cmd("status", "settings, translator and whether Subloc is busy")
-    cmd("models", "translator models available")
+    c = cmd("models", "translator models: in use; search Hugging Face; download one for the built-in translator")
+    c.add_argument("--search", metavar="WORDS", nargs="?", const="", help="search Hugging Face for GGUF models")
+    c.add_argument("--limit", type=int, default=20, help="how many search results (default 20)")
+    c.add_argument("--get", metavar="OWNER/NAME", help="download a model (the file that suits this PC), use it")
+    c.add_argument("--file", help="with --get: this file (name or quantization, e.g. Q4_K_M) instead")
+    c = cmd("engine", "the built-in translator's engine (llama.cpp): version, updates")
+    g = c.add_mutually_exclusive_group()
+    g.add_argument("--check", action="store_true", help="is there a newer stable llama.cpp?")
+    g.add_argument("--update", action="store_true", help="download it (checked), test it, switch to it")
+    g.add_argument("--undo", action="store_true", help="go back to the engine the last update replaced")
     cmd("styles", "subtitle style presets")
     c = cmd("update", "is there a newer Subloc? download and install it (the installed app; from source: git)")
     c.add_argument("--check", action="store_true", help="only say whether there is one")
@@ -413,6 +424,10 @@ def cmd_status(a: argparse.Namespace) -> int:
 
 
 def cmd_models(a: argparse.Namespace) -> int:
+    if a.search is not None:
+        return _models_search(a)
+    if a.get:
+        return _models_get(a)
     tr = service.translator_status(service.settings())
     if a.json:
         _emit(tr)
@@ -424,6 +439,137 @@ def cmd_models(a: argparse.Namespace) -> int:
         if not tr["ready"]:
             print(tr["problem"])
     return 0
+
+
+def _models_search(a: argparse.Namespace) -> int:
+    """GGUF translator models on Hugging Face (most downloaded first)."""
+    from . import hub
+    from .errors import SublocError
+
+    try:
+        repos = hub.search(a.search, limit=a.limit)
+    except SublocError as e:
+        return _fail(a, str(e))
+    if a.json:
+        _emit({"models": [{"id": r.id, "downloads": r.downloads, "likes": r.likes, "updated": r.updated,
+                           "licence": r.licence, "page": r.page} for r in repos]})  # fmt: skip
+    else:
+        for r in repos:
+            extra = f", {r.licence}" if r.licence else ""
+            print(f"{r.id}  ({r.downloads:,} downloads, updated {r.updated}{extra})")
+        if repos:
+            print("\nsubloc models --get OWNER/NAME   downloads the file that suits this PC and uses it")
+    return 0
+
+
+def _models_get(a: argparse.Namespace) -> int:
+    """Download a Hugging Face model's file (checked) and make it the built-in translator."""
+    from . import hub
+    from .config import Config
+    from .download import Cancelled
+    from .errors import SublocError
+    from .hardware import detect
+
+    try:
+        files = hub.files(a.get)
+        if a.file:
+            f = next((x for x in files if a.file in (x.name, x.path, x.quant)), None)
+            if f is None:
+                names = ", ".join(x.name for x in files) or "none Subloc can use"
+                return _fail(a, f"No file '{a.file}' in {a.get}. Files: {names}")
+        else:
+            f = hub.recommend(files, detect())
+            if f is None:
+                return _fail(a, f"{a.get} has no single GGUF file Subloc can use (it may be split into parts).")
+        _say(a, f"Downloading {f.name} ({f.size / 1e9:.1f} GB)…")
+        last = [-1]
+
+        def progress(done: int, total: int) -> None:
+            pct = int(done * 100 / max(total, 1)) // 10 * 10
+            if pct > last[0]:
+                last[0] = pct
+                _say(a, f"  {pct}%")
+
+        path = hub.fetch(f, progress)
+    except Cancelled:
+        return _fail(a, "Stopped.")
+    except SublocError as e:
+        return _fail(a, str(e))
+    cfg = Config.load()
+    cfg.provider, cfg.builtin_model = "builtin", str(path)
+    cfg.save()
+    if a.json:
+        _emit({"model": f.path, "repo": f.repo, "quant": f.quant, "size": f.size, "path": str(path), "in_use": True})
+    else:
+        print(f"Saved {path}\nThe built-in translator now uses it.")
+    return 0
+
+
+def cmd_engine(a: argparse.Namespace) -> int:
+    """The built-in translator's engine (llama.cpp): its version; check for, install or undo an update."""
+    from . import llama
+    from .errors import SublocError
+
+    have = llama.current()
+    can_undo = {b: llama.previous(b) for b in have if llama.previous(b)}
+    report: dict[str, Any] = {"engine": "llama.cpp", "builds": have, "undo": can_undo}
+    if a.undo:
+        if not can_undo:
+            return _fail(a, "There is no earlier translator engine to go back to.")
+        try:
+            for b in can_undo:
+                llama.undo(b)
+        except SublocError as e:
+            return _fail(a, str(e))
+        report["builds"], report["undo"] = llama.current(), {}
+        if a.json:
+            _emit(report)
+        else:
+            print("Back to llama.cpp " + ", ".join(sorted(set(report["builds"].values()))) + ".")
+        return 0
+    if not (a.check or a.update):
+        if a.json:
+            _emit(report)
+        else:
+            print("\n".join(f"{b}: llama.cpp {tag}" for b, tag in have.items()) or "Not installed.")
+        return 0
+    try:
+        build = llama.latest()
+    except SublocError as e:
+        return _fail(a, str(e))
+    todo = llama.newer(build, have)
+    report.update(latest=build.tag if build else None, release=build.release if build else None, newer=todo)
+    if build is None or not todo or a.check:
+        if a.json:
+            _emit(report)
+        elif build is not None and todo:
+            print(f"llama.cpp {build.tag} ({build.release}) is available for: {', '.join(todo)}. "
+                  "subloc engine --update installs it.")  # fmt: skip
+        else:
+            print("You have the newest translator engine.")
+        return 0
+    if who := holder():
+        return _fail(a, f"Subloc is busy ({who}). Update when it's done.", BUSY)
+    try:
+        for b in todo:
+            _say(a, f"Downloading llama.cpp {build.tag} for {b} ({build.assets[b].size / 1e6:.0f} MB)…")
+            llama.update(b, build)
+    except SublocError as e:
+        return _fail(a, str(e))
+    report["builds"] = llama.current()
+    if a.json:
+        _emit(report)
+    else:
+        print(f"The translator engine is now llama.cpp {build.tag}.")
+    return 0
+
+
+def _fail(a: argparse.Namespace, msg: str, code: int = 1) -> int:
+    if a.json:
+        _emit({"error": msg})
+    else:
+        print(f"subloc: {msg}", file=sys.stderr)
+    return code
 
 
 def cmd_styles(a: argparse.Namespace) -> int:
@@ -503,7 +649,7 @@ def cmd_update(a: argparse.Namespace) -> int:
 COMMAND_FUNCS = {"translate": cmd_translate, "transcribe": cmd_translate, "info": cmd_info, "lines": cmd_lines,
                  "edit": cmd_edit, "retranslate": cmd_retranslate, "burn": cmd_burn, "folder": cmd_folder,
                  "library": cmd_library, "queue": cmd_queue, "status": cmd_status, "models": cmd_models,
-                 "styles": cmd_styles, "update": cmd_update}  # fmt: skip
+                 "styles": cmd_styles, "update": cmd_update, "engine": cmd_engine}  # fmt: skip
 
 
 if __name__ == "__main__":
