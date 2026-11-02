@@ -132,6 +132,11 @@ PATH from its first runtime hook (`installer/rth_system_path.py`): other program
 
 ## Next
 
+**Where we left off (2026-11-02):** v0.2.2 is out. Nothing is in progress. `dev` is one README commit ahead of
+`main` (0.2.2 status + privacy lines); merge it when the user says. The user will test Find more models and
+Translator engine in the app and report back. Item 6 is an optional roadmap: ask the user what they want first,
+they may have better ideas.
+
 0. **In-app updater — released in 0.2.1 (2026-10-25)**: `subloc/update.py` (check GitHub, download verified by
    GitHub's SHA-256, run the installer quietly into the app folder with `/WAITPID=<pid>` and `/REOPEN=1`), app
    (Update now, progress on the Check for updates button, refuses while anything runs or another Subloc window
@@ -170,3 +175,14 @@ PATH from its first runtime hook (`installer/rth_system_path.py`): other program
    (b) a website idea: people drop a video, the server extracts only the audio, translates it and returns the
    subtitle file. (b) uploads people's media, the opposite of the app's "nothing leaves your PC" promise, so it
    would need its own name/privacy terms and must not reuse the app's privacy claims.
+
+6. **Roadmap (optional, 2026-11-02; the user decides, don't start on your own):**
+   - Finish the model features: a quick translation self-test after a download (Arabic + man/woman "you") for a
+     "Tested by Subloc" badge; a recommended-models list read from a file in the GitHub repo; bundle llama.cpp
+     b11960 in the next installer after testing it with the three Setup models.
+   - Trust: code signing (SignPath, free for open source: the user applies), a test on a clean PC (item 2).
+   - Translation quality: shot changes as scene cuts, the listener choice in crowded scenes (item 1), the same
+     Hugging Face search for speech (Whisper) models.
+   - Bigger: reading burned-in subtitles (PLAN.md §2.2, the suggested next big one), image subtitle tracks
+     (PGS/VobSub), one running copy, live captions, animated captions, more UI languages (item 3).
+   - Suggested order: model features → signing in parallel → burned-in subtitles.
