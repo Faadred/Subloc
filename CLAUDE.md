@@ -70,6 +70,15 @@ All four checks must pass before committing.
   feminine "you" with a visible ي, not a kasra (أنتي، لكي، يمكنكي، كنتي: the user's choice, `langs.visible_feminine`).
 - Defaults the user chose: 2 parallel translation requests (1–4 selectable); the user picks models.
 
+## Status (2026-11-02)
+
+**v0.2.2 released** (https://github.com/Faadred/Subloc/releases/tag/v0.2.2, tag on `7433466`, `main` = `dev`):
+installer `Subloc-0.2.2-setup.exe`, 159 MB, SHA-256 `94cc8cb8…4ba8f878` (GitHub's digest matched). What's new: Find
+more models (Hugging Face) and translator engine updates (Next 4), links to Faadred. The installer still bundles
+llama.cpp b11457; b11960 is one click away. Tested: the released 0.2.1 updated itself to 0.2.2 (local feed), fresh
+install, window opens, both `FEzio78/…` and `Faadred/…` API addresses offer 0.2.2. Notes: `dist/release-notes-v0.2.2.md`.
+Not yet done: the user's own hands-on test of the new windows (they'll report back).
+
 ## Status (2026-10-25)
 
 **v0.2.1 released** (https://github.com/Faadred/Subloc/releases/tag/v0.2.1, tag on `1bb166b`, `main` = `dev`):
@@ -147,7 +156,7 @@ PATH from its first runtime hook (`installer/rth_system_path.py`): other program
 3. Later: one running copy at a time (a second launch hands its files to the first), reading burned-in subtitles
    (research notes in PLAN.md §2.2), live captions for system audio, CapCut-style animated captions, more UI
    languages.
-4. **More models + engine updates** (on `dev`, 2026-11-02, not released): Settings/Setup → Find more models
+4. **More models + engine updates** (released in 0.2.2, 2026-11-02): Settings/Setup → Find more models
    (Hugging Face search, GGUF only, gated/split repos left out; suggested file = preferred quant that fits the PC,
    `hub.PREFERRED`; downloads checked against HF's LFS SHA-256 into `models/llm/hub/<owner--repo>/`), Settings →
    Translator engine (llama.cpp: follows the *stable* release, which only carries `nightly-tag.txt` naming its
